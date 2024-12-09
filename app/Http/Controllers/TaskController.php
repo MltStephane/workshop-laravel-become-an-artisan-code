@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TaskStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class TaskController extends Controller
 {
@@ -24,7 +27,7 @@ class TaskController extends Controller
      */
     public function create()
     {
-        //
+        return view('tasks.create');
     }
 
     /**
@@ -32,7 +35,19 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = Validator::validate(
+            $request->all(['name', 'description', 'due_date', 'status']),
+            [
+                'name' => ['required'],
+                'description' => ['required'],
+                'due_date' => ['nullable', 'date'],
+                'status' => ['required', Rule::enum(TaskStatus::class)],
+            ]
+        );
+
+        Auth::user()->currentTeam->tasks()->create($validatedData);
+
+        return redirect()->route('tasks.index');
     }
 
     /**
