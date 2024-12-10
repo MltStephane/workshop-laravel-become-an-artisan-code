@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TaskStatus;
+use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -27,6 +29,8 @@ class TaskController extends Controller
      */
     public function create()
     {
+        Gate::authorize('create', Task::class);
+
         return view('tasks.create');
     }
 
@@ -35,6 +39,8 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('create', Task::class);
+
         $validatedData = Validator::validate(
             $request->all(['name', 'description', 'due_date', 'status']),
             [
@@ -53,9 +59,9 @@ class TaskController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $task)
+    public function show(Task $task)
     {
-        $task = Auth::user()->currentTeam->tasks->findOrFail($task);
+        Gate::authorize('view', $task);
 
         return view('tasks.show', [
             'task' => $task,
@@ -67,22 +73,22 @@ class TaskController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        Gate::authorize('update', Task::class);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Task $task)
     {
-        //
+        Gate::authorize('update', $task);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Task $task)
     {
-        //
+        Gate::authorize('delete', $task);
     }
 }
