@@ -53,9 +53,13 @@ class TaskController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $task)
     {
-        //
+        $task = Auth::user()->currentTeam->tasks->findOrFail($task);
+
+        return view('tasks.show', [
+            'task' => $task,
+        ]);
     }
 
     /**
