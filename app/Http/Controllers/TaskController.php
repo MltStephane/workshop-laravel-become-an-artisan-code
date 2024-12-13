@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\TaskStatus;
+use App\Http\Requests\TaskRequest;
 use App\Models\Task;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class TaskController extends Controller
 {
@@ -37,21 +34,14 @@ class TaskController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(TaskRequest $request)
     {
-        Gate::authorize('create', Task::class);
-
-        $validatedData = Validator::validate(
-            $request->all(['name', 'description', 'due_date', 'status']),
-            [
-                'name' => ['required'],
-                'description' => ['required'],
-                'due_date' => ['nullable', 'date'],
-                'status' => ['required', Rule::enum(TaskStatus::class)],
-            ]
-        );
-
-        Auth::user()->currentTeam->tasks()->create($validatedData);
+        Auth::user()
+            ->currentTeam
+            ->tasks()
+            ->create(
+                $request->validated()
+            );
 
         return redirect()->route('tasks.index');
     }
@@ -83,21 +73,9 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Task $task)
+    public function update(TaskRequest $request, Task $task)
     {
-        Gate::authorize('update', $task);
-
-        $validatedData = Validator::validate(
-            $request->all(['name', 'description', 'due_date', 'status']),
-            [
-                'name' => ['required'],
-                'description' => ['required'],
-                'due_date' => ['nullable', 'date'],
-                'status' => ['required', Rule::enum(TaskStatus::class)],
-            ]
-        );
-
-        $task->update($validatedData);
+        $task->update($request->validated());
 
         return redirect()->route('tasks.show', $task);
     }
