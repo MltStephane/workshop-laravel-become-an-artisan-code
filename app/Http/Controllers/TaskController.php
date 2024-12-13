@@ -71,9 +71,13 @@ class TaskController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Task $task)
     {
-        Gate::authorize('update', Task::class);
+        Gate::authorize('update', $task);
+
+        return view('tasks.edit', [
+            'task' => $task,
+        ]);
     }
 
     /**
@@ -82,6 +86,20 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         Gate::authorize('update', $task);
+
+        $validatedData = Validator::validate(
+            $request->all(['name', 'description', 'due_date', 'status']),
+            [
+                'name' => ['required'],
+                'description' => ['required'],
+                'due_date' => ['nullable', 'date'],
+                'status' => ['required', Rule::enum(TaskStatus::class)],
+            ]
+        );
+
+        $task->update($validatedData);
+
+        return redirect()->route('tasks.show', $task);
     }
 
     /**
@@ -90,5 +108,9 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         Gate::authorize('delete', $task);
+
+        $task->delete();
+
+        return redirect()->route('tasks.index');
     }
 }
